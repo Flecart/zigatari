@@ -21,6 +21,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
     deps.addAllTo(exe);
 
     // This declares intent for the executable to be installed into the

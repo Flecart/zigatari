@@ -1,38 +1,30 @@
 //! This file is used to try OpenGL and GLFW with zig
 const std = @import("std");
-const c = @cImport({
-    @cInclude("GLFW/glfw3.h");
-});
+const glfw = @import("zglfw");
 
-pub fn main() void {
-    // Initialize GLFW
-    if (c.glfwInit() != c.GL_TRUE) {
-        std.debug.print("Failed to initialize GLFW\n", .{});
-        return;
+pub fn main() !void {
+
+    var major: i32 = 0;
+    var minor: i32 = 0;
+    var rev: i32 = 0;
+
+    glfw.getVersion(&major, &minor, &rev);
+    std.debug.print("GLFW {}.{}.{}\n", .{ major, minor, rev });
+
+    //Example of something that fails with GLFW_NOT_INITIALIZED - but will continue with execution
+    //var monitor : ?*glfw.Monitor = glfw.getPrimaryMonitor();
+
+    try glfw.init();
+    defer glfw.terminate();
+    std.debug.print("GLFW Init Succeeded.\n", .{});
+
+    var window: *glfw.Window = try glfw.createWindow(800, 640, "Hello World", null, null);
+
+    while (!glfw.windowShouldClose(window)) {
+        if (glfw.getKey(window, glfw.KeyEscape) == glfw.Press) {
+            glfw.setWindowShouldClose(window, true);
+        }
+
+        glfw.pollEvents();
     }
-
-    // Create a windowed mode window and its OpenGL context
-    const window = c.glfwCreateWindow(640, 480, "Hello Zig GLFW", null, null);
-    if (window == null) {
-        std.debug.print("Failed to create GLFW window\n", .{});
-        c.glfwTerminate();
-        return;
-    }
-
-    // Make the window's context current
-    c.glfwMakeContextCurrent(window);
-
-    // Loop until the user closes the window
-    while (c.glfwWindowShouldClose(window) == 0) {
-        // Render here
-
-        // Swap front and back buffers
-        c.glfwSwapBuffers(window);
-
-        // Poll for and process events
-        c.glfwPollEvents();
-    }
-
-    // Terminate GLFW
-    c.glfwTerminate();
 }

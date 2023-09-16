@@ -7,3 +7,11 @@ Following the OpenGL from https://learnopengl.com/In-Practice/2D-Game/Breakout, 
 
 Zig is a relatively new programming language, this is an opportunity to learn this language, learn openGL and contribute to the early [Zig openGL bindings](https://github.com/ziglibs/zgl).
 The tutorial is written in C++, so it is not straighforward to find the same (or better) implementation in Zig. But at least the architecture is there, and the process is guided, so I think it is an easy way to start with the language
+
+## How to build and run
+
+you need to have [zigmod](https://github.com/nektro/zigmod) installed on your computer.
+
+run:
+- `zigmod fetch`
+- `zig build run`

@@ -6,5 +6,7 @@ root_dependencies:
   - src: git https://github.com/ziglibs/zgl
     name: zgl
     main: zgl.zig
+  - src: git https://github.com/Iridescence-Technologies/zglfw
+    name: zglfw
+    main: src/main.zig
   - src: system_lib glfw
-    name: glfw
