@@ -1,0 +1,5 @@
+id: la12l3tydvqamw32as8n3pwyu9r4rf0ea2l2o1s3jnx6enze
+name: zigatari
+license: MIT
+description: An implementation of the classic atari game in Zig and OpenGL
+root_dependencies:
