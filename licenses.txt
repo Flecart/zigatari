@@ -1,0 +1,7 @@
+MIT:
+= https://spdx.org/licenses/MIT
+- This
+
+Unspecified:
+- git https://github.com/ziglibs/zgl
+- system_lib glfw

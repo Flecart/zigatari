@@ -3,3 +3,8 @@ name: zigatari
 license: MIT
 description: An implementation of the classic atari game in Zig and OpenGL
 root_dependencies:
+  - src: git https://github.com/ziglibs/zgl
+    name: zgl
+    main: zgl.zig
+  - src: system_lib glfw
+    name: glfw
