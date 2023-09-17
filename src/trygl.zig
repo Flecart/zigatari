@@ -1,30 +1,50 @@
-//! This file is used to try OpenGL and GLFW with zig
 const std = @import("std");
-const glfw = @import("zglfw");
+const glfw = @import("mach-glfw");
+const gl = @import("zgl");
+
+const log = std.log.scoped(.Engine);
+
+fn glGetProcAddress(p: glfw.GLProc, proc: [:0]const u8) ?gl.binding.FunctionPointer {
+    _ = p;
+    return glfw.getProcAddress(proc);
+}
+
+/// Default GLFW error handling callback
+fn errorCallback(error_code: glfw.ErrorCode, description: [:0]const u8) void {
+    std.log.err("glfw: {}: {s}\n", .{ error_code, description });
+}
 
 pub fn main() !void {
-
-    var major: i32 = 0;
-    var minor: i32 = 0;
-    var rev: i32 = 0;
-
-    glfw.getVersion(&major, &minor, &rev);
-    std.debug.print("GLFW {}.{}.{}\n", .{ major, minor, rev });
-
-    //Example of something that fails with GLFW_NOT_INITIALIZED - but will continue with execution
-    //var monitor : ?*glfw.Monitor = glfw.getPrimaryMonitor();
-
-    try glfw.init();
+    glfw.setErrorCallback(errorCallback);
+    if (!glfw.init(.{})) {
+        std.log.err("failed to initialize GLFW: {?s}", .{glfw.getErrorString()});
+        std.process.exit(1);
+    }
     defer glfw.terminate();
-    std.debug.print("GLFW Init Succeeded.\n", .{});
 
-    var window: *glfw.Window = try glfw.createWindow(800, 640, "Hello World", null, null);
+    // Create our window
+    const window = glfw.Window.create(640, 480, "mach-glfw + zig-opengl", null, null, .{
+        .opengl_profile = .opengl_core_profile,
+        .context_version_major = 4,
+        .context_version_minor = 0,
+    }) orelse {
+        std.log.err("failed to create GLFW window: {?s}", .{glfw.getErrorString()});
+        std.process.exit(1);
+    };
+    defer window.destroy();
 
-    while (!glfw.windowShouldClose(window)) {
-        if (glfw.getKey(window, glfw.KeyEscape) == glfw.Press) {
-            glfw.setWindowShouldClose(window, true);
-        }
+    glfw.makeContextCurrent(window);
 
+    const proc: glfw.GLProc = undefined;
+    try gl.loadExtensions(proc, glGetProcAddress);
+
+    // Wait for the user to close the window.
+    while (!window.shouldClose()) {
         glfw.pollEvents();
+
+        gl.clearColor(1, 0, 1, 1);
+//        gl.clear(gl.binding.COLOR_BUFFER_BIT);
+
+        window.swapBuffers();
     }
 }
