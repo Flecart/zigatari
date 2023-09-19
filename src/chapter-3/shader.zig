@@ -67,6 +67,10 @@ pub const Shader = struct {
         gl.useProgram(self.id);
     }
 
+    pub fn getUniformLocation(self: Shader, name: [:0]const u8) ?u32 {
+        return gl.getUniformLocation(self.id, name);
+    }
+
     // utility uniform functions
     // ------------------------------------------------------------------------
     pub fn setBool(self: Shader, name: []const u8, value: bool) void {
