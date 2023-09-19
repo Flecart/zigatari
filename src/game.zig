@@ -1,3 +1,5 @@
+const zgl = @import("zgl");
+
 const GameState = enum { 
     GAME_ACTIVE, 
     GAME_MENU, 
