@@ -98,17 +98,35 @@ pub fn main() !void {
     // -------------------------
     const texture1 = gl.genTexture();
     defer gl.deleteTexture(texture1);
+    const texture2 = gl.genTexture();
+    defer gl.deleteTexture(texture2);
 
     gl.bindTexture(texture1, gl.TextureTarget.@"2d");
-
     // set the texture wrapping parameters
-    gl.texParameter(gl.TextureTarget.@"2d", gl.TextureParameter.wrap_s, gl.TextureParameterType(gl.TextureParameter.wrap_s).repeat);
-    gl.texParameter(gl.TextureTarget.@"2d", gl.TextureParameter.wrap_t, gl.TextureParameterType(gl.TextureParameter.wrap_t).repeat);
+    gl.texParameter(
+        gl.TextureTarget.@"2d",
+        gl.TextureParameter.wrap_s,
+        gl.TextureParameterType(gl.TextureParameter.wrap_s).repeat
+    );
+    gl.texParameter(
+        gl.TextureTarget.@"2d",
+        gl.TextureParameter.wrap_t,
+        gl.TextureParameterType(gl.TextureParameter.wrap_t).repeat
+    );
 
     // set texture filtering parameters
-    gl.texParameter(gl.TextureTarget.@"2d", gl.TextureParameter.min_filter, gl.TextureParameterType(gl.TextureParameter.min_filter).linear);
-    gl.texParameter(gl.TextureTarget.@"2d", gl.TextureParameter.mag_filter, gl.TextureParameterType(gl.TextureParameter.mag_filter).linear);
+    gl.texParameter(
+        gl.TextureTarget.@"2d",
+        gl.TextureParameter.min_filter,
+        gl.TextureParameterType(gl.TextureParameter.min_filter).linear
+    );
+    gl.texParameter(
+        gl.TextureTarget.@"2d",
+        gl.TextureParameter.mag_filter,
+        gl.TextureParameterType(gl.TextureParameter.mag_filter).linear
+    );
 
+    // at the time of writing zigimg does not support jpg, so we add png version of that.
     // load image, create texture and generate mipmaps
     var file = try std.fs.cwd().openFile("./textures/container.png", .{});
     defer file.close();
@@ -130,14 +148,29 @@ pub fn main() !void {
     );
     gl.generateMipmap(gl.TextureTarget.@"2d");
 
-    // const location = gl.getUniformLocation(ourShader.id, "texture1");
-    // std.log.info("hey, {?}", .{location});
-    // // ourShader.setInt("texture1", 0);
-    //  gl.uniform1i(
-    //     location, 
-    //   0);
+    gl.bindTexture(texture2, gl.TextureTarget.@"2d");
 
-    // ourShader.setInt("texture2", 1;
+
+    var file2 = try std.fs.cwd().openFile("./textures/awesomeface.png", .{});
+    defer file2.close();
+    var image2 = try zigimg.Image.fromFile(std.heap.page_allocator, &file2);
+    defer image2.deinit();
+
+    gl.textureImage2D(
+        gl.TextureTarget.@"2d",
+        0,
+        gl.TextureInternalFormat.rgba,
+        image2.width,
+        image2.height,
+        gl.PixelFormat.rgba,
+        gl.PixelType.unsigned_byte,
+        image2.pixels.asBytes().ptr
+    );
+    gl.generateMipmap(gl.TextureTarget.@"2d");
+
+    ourShader.use();
+    ourShader.setInt("texture1", 0);
+    ourShader.setInt("texture2", 1);
 
     // render loop
     // -----------
@@ -149,16 +182,14 @@ pub fn main() !void {
         gl.clearColor(0.2, 0.3, 0.3, 1.0);
         gl.clear(.{.color = true});
 
-        // gl.activeTexture(gl.TextureUnit.texture_0);
+        gl.activeTexture(gl.TextureUnit.texture_0);
         gl.bindTexture(texture1, gl.TextureTarget.@"2d");
-        // gl.activeTexture(gl.TextureUnit.texture_1);
-        // gl.bindTexture(texture1, gl.TextureTarget.@"2d");
-
+        gl.activeTexture(gl.TextureUnit.texture_1);
+        gl.bindTexture(texture2, gl.TextureTarget.@"2d");
 
         // draw our first triangle
         ourShader.use();
         gl.bindVertexArray(vao); // seeing as we only have a single vao there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        // gl.drawArrays(gl.PrimitiveType.triangles, 0, 3);
         gl.drawElements(gl.PrimitiveType.triangles, 6, gl.ElementType.u32, 0);
         // gl.bindVertexArray(gl.VertexArray.invalid); // no need to unbind it every time
 
