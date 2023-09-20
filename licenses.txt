@@ -1,6 +1,7 @@
 MIT:
 = https://spdx.org/licenses/MIT
 - This
+- git https://github.com/zigimg/zigimg
 
 Unspecified:
 - git https://github.com/hexops/mach-glfw
