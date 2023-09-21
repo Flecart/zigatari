@@ -1,6 +1,7 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
 const gl = @import("zgl");
+const math = @import("zlm");
 const zigimg = @import("zigimg");
 
 const Shader = @import("shader.zig").Shader;
@@ -46,7 +47,7 @@ pub fn main() !void {
     // build and compile our shader program
     // ------------------------------------
     // vertex shader
-    const ourShader = Shader.init("./shaders/4.2.texture.vs", "./shaders/4.2.texture.fs");
+    const ourShader = Shader.init("./shaders/5.1.transform.vs", "./shaders/5.1.transform.fs");
     defer ourShader.destroy();
     // // set up vertex data (and buffer(s)) and configure vertex attributes
     // // ------------------------------------------------------------------
@@ -54,11 +55,11 @@ pub fn main() !void {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     const vertices = [_]f32{
-        // positions          // colors           // texture coords
-         0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
-         0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
-        -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
-        -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0  // top left 
+        // positions          // texture coords
+         0.5,  0.5, 0.0,   1.0, 1.0, // top right
+         0.5, -0.5, 0.0,   1.0, 0.0, // bottom right
+        -0.5, -0.5, 0.0,   0.0, 0.0, // bottom left
+        -0.5,  0.5, 0.0,   0.0, 1.0  // top left 
     };
 
     const indices = [_]u32{
@@ -83,16 +84,12 @@ pub fn main() !void {
     gl.bufferData(gl.BufferTarget.element_array_buffer, u32, &indices, gl.BufferUsage.static_draw);
 
     // position attribute
-    gl.vertexAttribPointer(0, 4, gl.Type.float, false, 8 * @sizeOf(f32), 0);
+    gl.vertexAttribPointer(0, 3, gl.Type.float, false, 5 * @sizeOf(f32), 0);
     gl.enableVertexAttribArray(0);
 
-    // color attribute
-    gl.vertexAttribPointer(1, 3, gl.Type.float, false, 8 * @sizeOf(f32), 3 * @sizeOf(f32));
-    gl.enableVertexAttribArray(1);
-
     // texture coord attribute
-    gl.vertexAttribPointer(2, 2, gl.Type.float, false, 8 * @sizeOf(f32), 6 * @sizeOf(f32));
-    gl.enableVertexAttribArray(2);
+    gl.vertexAttribPointer(1, 2, gl.Type.float, false, 5 * @sizeOf(f32), 3 * @sizeOf(f32));
+    gl.enableVertexAttribArray(1);
 
     // load and create a texture
     // -------------------------
@@ -150,7 +147,6 @@ pub fn main() !void {
 
     gl.bindTexture(texture2, gl.TextureTarget.@"2d");
 
-
     var file2 = try std.fs.cwd().openFile("./textures/awesomeface.png", .{});
     defer file2.close();
     var image2 = try zigimg.Image.fromFile(std.heap.page_allocator, &file2);
@@ -188,10 +184,16 @@ pub fn main() !void {
         gl.bindTexture(texture2, gl.TextureTarget.@"2d");
 
         // create transformations
-        const transform = glfw.Mat4.identity();
+        const float_time: f32 = @floatCast(glfw.getTime());
 
-        // draw our first triangle
+        var tranlation = math.Mat4.createTranslation(math.Vec3.new(0.5, -0.5, 0.0));
+        var rotation = math.Mat4.createAngleAxis(math.Vec3.new(0, 0, 1), math.toRadians(float_time) * 50);
+        // var scale = math.Mat4.createUniformScale(0.5);
+
+        // get matrix's uniform location and set matrix
         ourShader.use();
+        ourShader.setMat4("transform", rotation.mul(tranlation));
+
         gl.bindVertexArray(vao); // seeing as we only have a single vao there's no need to bind it every time, but we'll do so to keep things a bit more organized
         gl.drawElements(gl.PrimitiveType.triangles, 6, gl.ElementType.u32, 0);
         // gl.bindVertexArray(gl.VertexArray.invalid); // no need to unbind it every time

@@ -1,5 +1,6 @@
 const std = @import("std");
 const gl = @import("zgl");
+const math = @import("zlm");
 
 const ErrorType = enum {
     Vertex,
@@ -83,6 +84,18 @@ pub const Shader = struct {
 
     pub fn setFloat(self: Shader, name: [:0]const u8, value: f32) void {
         gl.uniform1f(gl.getUniformLocation(self.id, name), value);
+    }
+
+    pub fn setMat2(self: Shader, name: [:0]const u8, value: math.Mat2) void {
+        gl.uniformMatrix2fv(gl.getUniformLocation(self.id, name), false, &.{value.fields});
+    }
+
+    pub fn setMat3(self: Shader, name: [:0]const u8, value: math.Mat3) void {
+        gl.uniformMatrix3fv(gl.getUniformLocation(self.id, name), false, &.{value.fields});
+    }
+
+    pub fn setMat4(self: Shader, name: [:0]const u8, value: math.Mat4) void {
+        gl.uniformMatrix4fv(gl.getUniformLocation(self.id, name), false, &.{value.fields});
     }
 
     pub fn destroy(self: Shader) void {

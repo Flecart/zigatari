@@ -83,7 +83,7 @@ pub fn main() !void {
     gl.bufferData(gl.BufferTarget.element_array_buffer, u32, &indices, gl.BufferUsage.static_draw);
 
     // position attribute
-    gl.vertexAttribPointer(0, 4, gl.Type.float, false, 8 * @sizeOf(f32), 0);
+    gl.vertexAttribPointer(0, 3, gl.Type.float, false, 8 * @sizeOf(f32), 0);
     gl.enableVertexAttribArray(0);
 
     // color attribute
@@ -108,6 +108,7 @@ pub fn main() !void {
         gl.TextureParameter.wrap_s,
         gl.TextureParameterType(gl.TextureParameter.wrap_s).repeat
     );
+
     gl.texParameter(
         gl.TextureTarget.@"2d",
         gl.TextureParameter.wrap_t,
@@ -149,7 +150,6 @@ pub fn main() !void {
     gl.generateMipmap(gl.TextureTarget.@"2d");
 
     gl.bindTexture(texture2, gl.TextureTarget.@"2d");
-
 
     var file2 = try std.fs.cwd().openFile("./textures/awesomeface.png", .{});
     defer file2.close();
