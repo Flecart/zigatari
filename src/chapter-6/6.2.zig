@@ -213,7 +213,7 @@ pub fn main() !void {
         // create transformations
         const float_time: f32 = @floatCast(glfw.getTime());
         const model = math.Mat4.createAngleAxis(math.Vec3.new(0.5, 1, 0.0), 40 * math.toRadians(float_time));
-        const view = math.Mat4.createTranslation(math.Vec3.new(0.0, 0.0, 3.0));
+        const view = math.Mat4.createTranslation(math.Vec3.new(0.0, 0.0, -3.0));
         const projection = math.Mat4.createPerspective(math.toRadians(45.0), SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0);
 
         // get matrix's uniform location and set matrix

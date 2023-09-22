@@ -184,8 +184,17 @@ pub fn main() !void {
         gl.bindTexture(texture2, gl.TextureTarget.@"2d");
 
         // create transformations
-        const model = math.Mat4.createAngleAxis(math.Vec3.new(1, 0.0, 0.0), math.toRadians(-55.0));
-        const view = math.Mat4.createTranslation(math.Vec3.new(0.0, 0.0, 3.0));
+        // const float_time: f32 = @floatCast(glfw.getTime());
+
+        const model = math.Mat4.createAngleAxis(math.Vec3.new(1.0, 0.0, 0), math.toRadians(-55.0));
+
+        // print model matrix
+        // for (model.fields) |row| {
+        //     std.log.info("{d} {d} {d} {d}", .{row[0], row[1], row[2], row[3]});
+        // }
+
+        // const tmp = math.Mat4.createAngleAxis(math.Vec3.new(0, 0, 1), float_time);
+        const view = math.Mat4.createTranslation(math.Vec3.new(0.0, 0.0, -3.0));
         const projection = math.Mat4.createPerspective(math.toRadians(45.0), SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0);
 
         // get matrix's uniform location and set matrix

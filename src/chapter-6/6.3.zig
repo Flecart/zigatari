@@ -236,10 +236,10 @@ pub fn main() !void {
 
         // render boxes
         for (cubePositions, 0..) |pos, i| {
-            const model = math.Mat4.createTranslation(pos.mul(math.Vec3.new(-1.0, -1, -1)));
+            const model = math.Mat4.createTranslation(pos);
             const angle = 20.0 * @as(f32, @floatFromInt(i));
             const rotation = math.Mat4.createAngleAxis(math.Vec3.new(1.0, 0.3, 0.5), math.toRadians(angle));
-            ourShader.setMat4("model", model.mul(rotation));
+            ourShader.setMat4("model", rotation.mul(model));
 
             gl.drawArrays(gl.PrimitiveType.triangles, 0, 36);
         }
