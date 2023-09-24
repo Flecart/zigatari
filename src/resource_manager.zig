@@ -11,11 +11,6 @@ const Self = @This();
 var gTextures = std.StringArrayHashMap(Texture).init(std.heap.page_allocator);
 var gShaders = std.StringArrayHashMap(Shader).init(std.heap.page_allocator);
 
-pub fn init() void {
-    // gTextures.init(std.heap.page_allocator);
-    // gShaders.init(std.heap.page_allocator);
-}
-
 pub fn loadShader(
     comptime vShaderFile: []const u8, 
     comptime fShaderFile: []const u8, 

@@ -27,7 +27,6 @@ pub fn init(comptime vertexPath: []const u8, comptime fragmentPath: []const u8, 
         @embedFile(fragmentPath)
     };
 
-
     var buffer: [1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();
@@ -63,7 +62,7 @@ pub fn init(comptime vertexPath: []const u8, comptime fragmentPath: []const u8, 
         });
     }
     
-    return .{ .id = id };
+    return Self { .id = id };
 }
 
 pub fn use(self: Self) void {

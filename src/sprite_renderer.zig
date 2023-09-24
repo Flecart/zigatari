@@ -10,10 +10,12 @@ quadVAO: gl.VertexArray,
 shader: Shader,
 
 pub fn init(shader: Shader) Self {
-    return Self {
+    var self = Self {
         .quadVAO = gl.VertexArray.invalid,
         .shader = shader,
     };
+    self.initRenderData();
+    return self;
 }
 
 pub fn drawSprite(
@@ -35,11 +37,12 @@ pub fn drawSprite(
     self.shader.setMat4("model", model);
     self.shader.setVec3("spriteColor", color);
 
-    gl.activeTexture(gl.TextureUnit.texture_0);
-    texture.bind();
+    // gl.activeTexture(gl.TextureUnit.texture_0);
+    // texture.bind();
+    _ = texture;
 
     gl.bindVertexArray(self.quadVAO);
-    gl.drawArrays(gl.PrimitiveType.triangles, 0, 6);
+    gl.drawArrays(gl.PrimitiveType.triangles, 0, 3);
     gl.bindVertexArray(gl.VertexArray.invalid);
 }
 
@@ -59,12 +62,12 @@ fn initRenderData(self: *Self) void {
     };
 
     self.quadVAO = gl.genVertexArray();
+    gl.bindVertexArray(self.quadVAO);
     gl.bindBuffer(vbo, gl.BufferTarget.array_buffer);
     gl.bufferData(gl.BufferTarget.array_buffer, f32, &vertices, gl.BufferUsage.static_draw);
 
-    gl.bindVertexArray(self.quadVAO);
-    gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 4, gl.Type.float, false, 4 * @sizeOf(f32), 0);
-    gl.bindBuffer(gl.BufferTarget.array_buffer, 0);
-    gl.bindVertexArray(0);
+    gl.enableVertexAttribArray(0);
+    gl.bindBuffer(gl.Buffer.invalid, gl.BufferTarget.array_buffer);
+    gl.bindVertexArray(gl.VertexArray.invalid);
 }

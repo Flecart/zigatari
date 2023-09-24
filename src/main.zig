@@ -26,12 +26,12 @@ pub fn main() !void {
     }
     defer glfw.terminate();
 
-
     // Create our window
     const window = glfw.Window.create(SCR_WIDTH, SCR_HEIGHT, "Breakout", null, null, .{
         .opengl_profile = .opengl_core_profile,
         .context_version_major = 4,
         .context_version_minor = 4,
+        // .context_debug = true,
     }) orelse {
         std.log.err("failed to create GLFW window: {?s}", .{glfw.getErrorString()});
         std.process.exit(1);
@@ -41,6 +41,13 @@ pub fn main() !void {
     glfw.makeContextCurrent(window);
     const proc: glfw.GLProc = undefined;
     try gl.loadExtensions(proc, glGetProcAddress);
+
+    // const flags = gl.getInteger(gl.Parameter.context_flags);
+    // std.debug.print("OpenGL context flags: {x}\n", .{flags});
+
+    // gl.enable(gl.Capabilities.debug_output);
+    // gl.enable(gl.Capabilities.debug_output_synchronous);
+    // gl.debugMessageCallback(void, debugHandler);
 
     window.setKeyCallback(key_callback);
     gl.enable(gl.Capabilities.blend);
@@ -53,6 +60,9 @@ pub fn main() !void {
     var deltaTime: f32 = 0.0;
     var lastFrame: f32 = 0.0;
     while (!window.shouldClose()) {
+        gl.clearColor(0.2, 0.3, 0.3, 1.0);
+        gl.clear(.{.color = true, .depth = true});
+
         const currentFrame: f32 = @floatCast(glfw.getTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -81,4 +91,40 @@ fn key_callback(window: glfw.Window, key: glfw.Key, scancode: i32, action: glfw.
             gBreakout.keys[@intCast(key_code)] = false;
         }
     }
+}
+
+fn debugHandler (source: gl.DebugSource, msg_type: gl.DebugMessageType, id: usize, severity: gl.DebugSeverity, message: []const u8) void {
+    // ignore non-significant error/warning codes
+    if (id == 131169 or id == 131185 or id == 131218 or id == 131204) {
+        return;
+    }
+
+    std.debug.print("---------------\n", .{});
+    std.debug.print("Debug message ({d}): {s}\n", .{id, message});
+
+    switch (source) {
+        .api => std.debug.print("Source: API\n", .{}),
+        .window_system => std.debug.print("Source: Window System\n", .{}),
+        .shader_compiler => std.debug.print("Source: Shader Compiler\n", .{}),
+        .third_party => std.debug.print("Source: Third Party\n", .{}),
+        .application => std.debug.print("Source: Application\n", .{}),
+        .other => std.debug.print("Source: Other\n", .{}),
+    }
+
+    switch (msg_type) {
+        .@"error" => std.debug.print("Type: Error\n", .{}),
+        .deprecated_behavior => std.debug.print("Type: Deprecated Behaviour\n", .{}),
+        .undefined_behavior => std.debug.print("Type: Undefined Behaviour\n", .{}),
+        .portability => std.debug.print("Type: Portability\n", .{}),
+        .performance => std.debug.print("Type: Performance\n", .{}),
+        .other => std.debug.print("Type: Other\n", .{}),
+    }
+
+    switch (severity) {
+        .high => std.debug.print("Severity: high\n", .{}),
+        .medium => std.debug.print("Severity: medium\n", .{}),
+        .low => std.debug.print("Severity: low\n", .{}),
+        .notification => std.debug.print("Severity: notification\n", .{}),
+    }
+    std.debug.print("\n", .{});
 }

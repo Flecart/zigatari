@@ -30,10 +30,8 @@ pub fn init(width: u32, height: u32) Self {
 }
 
 pub fn start(self: *Self) !void {
-    ResourceManager.init();
-
     // load shaders
-    _ = try ResourceManager.loadShader("shaders/sprite.vs", "shaders/sprite.fs", "", "sprite");
+    const shader = try ResourceManager.loadShader("shaders/sprite.vs", "shaders/sprite.fs", "", "sprite");
 
     // configure shaders
     const projection = zlm.Mat4.createOrthogonal(
@@ -43,7 +41,7 @@ pub fn start(self: *Self) !void {
         0, -1, 1
     );
 
-    const shader = try ResourceManager.getShader("sprite");
+    // const shader = try ResourceManager.getShader("sprite");
     shader.use();
     shader.setInt("image", 0);
     shader.setMat4("projection", projection);
