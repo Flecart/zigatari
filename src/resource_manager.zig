@@ -20,10 +20,10 @@ pub fn loadShader(
     comptime vShaderFile: []const u8, 
     comptime fShaderFile: []const u8, 
     comptime gShaderFile: []const u8, 
-    comptime name: []const u8) !Shader 
+    name: []const u8) !Shader 
 {
-    const shader = Shader(vShaderFile, fShaderFile, gShaderFile);
-    gShaders.put(name, shader);
+    const shader = Shader.init(vShaderFile, fShaderFile, gShaderFile);
+    try gShaders.put(name, shader);
     return shader;
 }
 
@@ -36,9 +36,9 @@ pub fn getShader(comptime name: []const u8) !Shader {
     }
 }
 
-pub fn loadTexture(comptime file: []const u8, alpha: bool) !Texture {
-    const texture = loadTextureFromFile(file, alpha);
-    gTextures.put(file, texture);
+pub fn loadTexture(comptime file: []const u8, alpha: bool, name: []const u8) !Texture {
+    const texture = try loadTextureFromFile(file, alpha);
+    try gTextures.put(name, texture);
     return texture;
 }
 
@@ -53,11 +53,11 @@ pub fn getTexture(comptime name: []const u8) !Texture {
 
 pub fn deinit() void {
     for (gTextures.items) |item| {
-        gl.deleteProgram(item.value.id);
+        item.value.deinit();
     }
 
     for (gShaders.items) |item| {
-        gl.deleteTexture(item.value.id);
+        item.value.deinit();
     }
 
     gTextures.deinit();
@@ -65,7 +65,7 @@ pub fn deinit() void {
 }
 
 
-fn loadTextureFromFile(path: []const u8, comptime alpha: bool) !Texture {
+fn loadTextureFromFile(path: []const u8, alpha: bool) !Texture {
     var texture = Texture.init();
 
     if (alpha) {
@@ -79,7 +79,22 @@ fn loadTextureFromFile(path: []const u8, comptime alpha: bool) !Texture {
     var image =  try zigimg.Image.fromFile(std.heap.page_allocator, &file);
     defer image.deinit();
 
-    texture.generate(image.width, image.height, image.pixels.asBytes());
+    texture.generate(
+        @intCast(image.width), 
+        @intCast(image.height), 
+        image.pixels.asBytes()
+    );
 
     return texture;
 }
+
+
+    // // loads (and generates) a shader program from file loading vertex, fragment (and geometry) shader's source code. If gShaderFile is not nullptr, it also loads a geometry shader
+    // static Shader    LoadShader(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, std::string name);
+    // // retrieves a stored sader
+    // static Shader    GetShader(std::string name);
+    // // loads (and generates) a texture from file
+    // static Texture2D LoadTexture(const char *file, bool alpha, std::string name);
+    // // retrieves a stored texture
+    // static Texture2D GetTexture(std::string name);
+    // // properly de-allocates all loaded resources

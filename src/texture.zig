@@ -8,7 +8,7 @@ const FilterMaxType = gl.TextureParameterType(gl.TextureParameter.max_filter);
 
 width: u32,
 height: u32,
-id: gl.types.Texture,
+id: gl.Texture,
 internal_format: gl.TextureInternalFormat,
 image_format: gl.PixelFormat,
 wrap_s: WrapType,

@@ -46,7 +46,7 @@ pub fn main() !void {
     gl.enable(gl.Capabilities.blend);
     gl.blendFunc(gl.BlendFactor.src_alpha, gl.BlendFactor.one_minus_constant_alpha);
     
-    gBreakout.start();
+    try gBreakout.start();
 
     // render loop
     // -----------

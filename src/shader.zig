@@ -88,6 +88,14 @@ pub fn setFloat(self: Self, name: [:0]const u8, value: f32) void {
     gl.uniform1f(gl.getUniformLocation(self.id, name), value);
 }
 
+pub fn setVec2(self: Self, name: [:0]const u8, value: math.Vec2) void {
+    gl.uniform2fv(gl.getUniformLocation(self.id, name), &.{value.fields});
+}
+
+pub fn setVec3(self: Self, name: [:0]const u8, value: math.Vec2) void {
+    gl.uniform3f(gl.getUniformLocation(self.id, name), value.x, value.y, value.z);
+}
+
 pub fn setMat2(self: Self, name: [:0]const u8, value: math.Mat2) void {
     gl.uniformMatrix2fv(gl.getUniformLocation(self.id, name), false, &.{value.fields});
 }
@@ -100,6 +108,6 @@ pub fn setMat4(self: Self, name: [:0]const u8, value: math.Mat4) void {
     gl.uniformMatrix4fv(gl.getUniformLocation(self.id, name), false, &.{value.fields});
 }
 
-pub fn destroy(self: Self) void {
+pub fn deinit(self: Self) void {
     gl.deleteProgram(self.id);
 }
