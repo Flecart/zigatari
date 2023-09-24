@@ -92,7 +92,7 @@ pub fn setVec2(self: Self, name: [:0]const u8, value: math.Vec2) void {
     gl.uniform2fv(gl.getUniformLocation(self.id, name), &.{value.fields});
 }
 
-pub fn setVec3(self: Self, name: [:0]const u8, value: math.Vec2) void {
+pub fn setVec3(self: Self, name: [:0]const u8, value: math.Vec3) void {
     gl.uniform3f(gl.getUniformLocation(self.id, name), value.x, value.y, value.z);
 }
 

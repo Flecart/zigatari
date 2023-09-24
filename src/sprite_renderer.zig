@@ -6,12 +6,12 @@ const Texture = @import("./texture.zig");
 
 const Self = @This();
 
-quadVAO: gl.Buffer,
+quadVAO: gl.VertexArray,
 shader: Shader,
 
 pub fn init(shader: Shader) Self {
     return Self {
-        .quadVAO = gl.Buffer.invalid,
+        .quadVAO = gl.VertexArray.invalid,
         .shader = shader,
     };
 }
@@ -40,7 +40,7 @@ pub fn drawSprite(
 
     gl.bindVertexArray(self.quadVAO);
     gl.drawArrays(gl.PrimitiveType.triangles, 0, 6);
-    gl.bindVertexArray(0);
+    gl.bindVertexArray(gl.VertexArray.invalid);
 }
 
 fn initRenderData(self: *Self) void {

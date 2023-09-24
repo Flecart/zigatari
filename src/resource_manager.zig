@@ -8,12 +8,12 @@ const Shader = @import("./shader.zig");
 const Self = @This();
 
 // instantiate static variables
-var gTextures: std.AutoArrayHashMap([]const u8, Texture) = undefined;
-var gShaders: std.AutoArrayHashMap([]const u8, Shader) = undefined;
+var gTextures = std.StringArrayHashMap(Texture).init(std.heap.page_allocator);
+var gShaders = std.StringArrayHashMap(Shader).init(std.heap.page_allocator);
 
 pub fn init() void {
-    gTextures.init(std.heap.page_allocator);
-    gShaders.init(std.heap.page_allocator);
+    // gTextures.init(std.heap.page_allocator);
+    // gShaders.init(std.heap.page_allocator);
 }
 
 pub fn loadShader(

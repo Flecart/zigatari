@@ -62,7 +62,7 @@ pub fn main() !void {
         gBreakout.update(deltaTime);
 
         window.swapBuffers();
-        gBreakout.render();
+        try gBreakout.render();
     }
 }
 

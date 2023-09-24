@@ -79,9 +79,9 @@ pub fn update(self: Self, dt: f32) void {
     _ = dt;
 }
 
-pub fn render(self: Self) void {
+pub fn render(self: Self) !void {
     self.renderer.drawSprite(
-        ResourceManager.getTexture("face"),
+        try ResourceManager.getTexture("face"),
         zlm.vec2(200.0, 200.0),
         zlm.vec2(300.0, 400.0),
         45.0,
