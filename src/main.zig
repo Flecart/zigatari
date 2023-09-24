@@ -60,8 +60,6 @@ pub fn main() !void {
     var deltaTime: f32 = 0.0;
     var lastFrame: f32 = 0.0;
     while (!window.shouldClose()) {
-        gl.clearColor(0.2, 0.3, 0.3, 1.0);
-        gl.clear(.{.color = true, .depth = true});
 
         const currentFrame: f32 = @floatCast(glfw.getTime());
         deltaTime = currentFrame - lastFrame;
@@ -71,8 +69,11 @@ pub fn main() !void {
         gBreakout.processInput(deltaTime);
         gBreakout.update(deltaTime);
 
-        window.swapBuffers();
+        gl.clearColor(0, 0, 0, 1.0);
+        gl.clear(.{.color = true});
         try gBreakout.render();
+
+        window.swapBuffers();
     }
 }
 

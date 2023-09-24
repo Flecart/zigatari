@@ -41,7 +41,6 @@ pub fn start(self: *Self) !void {
         0, -1, 1
     );
 
-    // const shader = try ResourceManager.getShader("sprite");
     shader.use();
     shader.setInt("image", 0);
     shader.setMat4("projection", projection);
@@ -50,7 +49,7 @@ pub fn start(self: *Self) !void {
     self.renderer = SpriteRenderer.init(shader);
 
     // load texture
-    _ = try ResourceManager.loadTexture("textures/awesomeface.png", false, "face");
+    _ = try ResourceManager.loadTexture("textures/awesomeface.png", true, "face");
 }
 
 pub fn processInput(self: *Self, dt: f32) void {

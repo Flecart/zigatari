@@ -29,20 +29,21 @@ pub fn drawSprite(
     self.shader.use();
 
     var model = glm.Mat4.createTranslationXYZ(position.x, position.y, 0.0);
-    model = model.mul(glm.Mat4.createTranslationXYZ(0.5 * size.x, 0.5 * size.y, 0.0));
-    model = model.mul(glm.Mat4.createAngleAxis(glm.vec3(0.0, 0.0, 1.0), glm.toRadians(rotate)));
-    model = model.mul(glm.Mat4.createTranslationXYZ(-0.5 * size.x, -0.5 * size.y, 0.0));
-    model = model.mul(glm.Mat4.createScale(size.x, size.y, 1.0));
+    model = glm.Mat4.createTranslationXYZ(0.5 * size.x, 0.5 * size.y, 0.0).mul(model);
+    model = glm.Mat4.createAngleAxis(glm.vec3(0.0, 0.0, 1.0), glm.toRadians(rotate)).mul(model);
+    model = glm.Mat4.createTranslationXYZ(-0.5 * size.x, -0.5 * size.y, 0.0).mul(model);
+    model = glm.Mat4.createScale(size.x, size.y, 1.0).mul(model);
 
     self.shader.setMat4("model", model);
     self.shader.setVec3("spriteColor", color);
 
-    // gl.activeTexture(gl.TextureUnit.texture_0);
-    // texture.bind();
-    _ = texture;
+    gl.activeTexture(gl.TextureUnit.texture_0);
+    texture.bind();
 
     gl.bindVertexArray(self.quadVAO);
-    gl.drawArrays(gl.PrimitiveType.triangles, 0, 3);
+
+    gl.drawArrays(gl.PrimitiveType.triangles, 0, 6);
+
     gl.bindVertexArray(gl.VertexArray.invalid);
 }
 
