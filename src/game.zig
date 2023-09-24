@@ -1,52 +1,56 @@
 const zgl = @import("zgl");
+const glfw = @import("maach-glfw");
 
 const GameState = enum { 
-    GAME_ACTIVE, 
-    GAME_MENU, 
-    GAME_WIN 
+    game_active, 
+    game_menu, 
+    game_win
 };
 
-const Game = struct {
-    state: GameState;
-    keys: [1024]bool;
-    width: u32;
-    height: u32;
+const Self = @This();
 
-    pub fn init(self, width: u32, height: u32) -> Game {
-        self.state = GameState::GAME_ACTIVE;
-        self.keys = [false; 1024];
-        self.width = width;
-        self.height = height;
-        self
-    }
+state: GameState,
+keys: [1024]bool,
+width: u32,
+height: u32,
 
-    pub fn process_input(self, dt: f32) {
-        if self.state == GameState::GAME_ACTIVE {
-            let velocity = PLAYER_VELOCITY * dt;
-            if self.keys[GLFW_KEY_W] {
-                self.player.position.y += velocity;
-            }
-            if self.keys[GLFW_KEY_S] {
-                self.player.position.y -= velocity;
-            }
-            if self.keys[GLFW_KEY_A] {
-                self.player.position.x -= velocity;
-            }
-            if self.keys[GLFW_KEY_D] {
-                self.player.position.x += velocity;
-            }
-        }
-    }
+pub fn init(width: u32, height: u32) Self {
+    return Self {
+        .state = GameState.game_active,
+        .keys = undefined,
+        .width = width,
+        .height = height,
+    };
+}
 
-    pub fn update(self, dt: f32) {
-        if self.state == GameState::GAME_ACTIVE {
-            self.player.update(dt);
-        }
-    }
+pub fn start(self: Self) void {
+    _ = self;
+}
 
-    pub fn render(self) {
-        if self.state == GameState::GAME_ACTIVE {
-            self.player.draw();
-        }
+pub fn processInput(self: *Self, dt: f32) void {
+    if (self.state == GameState.game_active) {
+        _ = dt;
+        // const velocity = PLAYER_VELOCITY * dt;
+        // if (self.keys[@intFromEnum(glfw.Keys.w)]) {
+        //     self.player.position.y += velocity;
+        // }
+        // if (self.keys[GLFW_KEY_S]) {
+        //     self.player.position.y -= velocity;
+        // }
+        // if (self.keys[GLFW_KEY_A]) {
+        //     self.player.position.x -= velocity;
+        // }
+        // if (self.keys[GLFW_KEY_D]) {
+        //     self.player.position.x += velocity;
+        // }
     }
-};
+}
+
+pub fn update(self: Self, dt: f32) void {
+    _ = self;
+    _ = dt;
+}
+
+pub fn render(self: Self) void {
+    _ = self;
+}
