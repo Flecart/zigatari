@@ -9,29 +9,29 @@ const Self = @This();
 
 bricks: std.ArrayList(GameObject),
 
-
-pub fn init() Self {
-
+pub fn deinit(self: *Self) Self {
+    self.bricks.deinit();
 }
 
-pub fn load(self: Self, filename: []const u8, levelWidth: usize, levelHeight: usize) !void {
-    self.bricks.deinit();
-    self.bricks.init(std.heap.page_allocator);
+pub fn init(filename: []const u8, levelWidth: usize, levelHeight: usize) !Self {
+    var bricks = std.ArrayList(GameObject).init(std.heap.page_allocator);
 
     var file = try std.fs.cwd().openFile(filename, .{});
     defer file.close();
 
     var buf_reader = std.io.bufferedReader(file.reader());
-    var in_stream = buf_reader.reader();
+    const buf = try buf_reader.reader().readAllAlloc(std.heap.page_allocator, 4096);
+
+    var in_stream = std.io.fixedBufferStream(buf);
 
     // actually run the init
-    const tileData = try Self.readTileData(&in_stream);
+    const tileData = try Self.readTileData([] u8, &in_stream);
 
     const height = tileData.items.len;
     const width = tileData.items[0].items.len;
 
-    const unit_width = levelWidth / width;
-    const unit_height = levelHeight / height;
+    const unit_width = @as(f32, @floatFromInt(levelWidth)) / @as(f32, @floatFromInt(width));
+    const unit_height = @as(f32, @floatFromInt(levelHeight)) / @as(f32, @floatFromInt(height));
 
     // initialize level tiles based on tileData
     var y: usize = 0;
@@ -42,16 +42,16 @@ pub fn load(self: Self, filename: []const u8, levelWidth: usize, levelHeight: us
             const tile = tileData.items[y].items[x];
             // check block type from level data (2D level array)
             if (tile == 1) {
-                const pos = zlm.vec2(unit_width * x, unit_height * y);
+                const pos = zlm.vec2(unit_width * @as(f32, @floatFromInt(x)), unit_height * @as(f32, @floatFromInt(y)));
                 const size = zlm.vec2(unit_width, unit_height);
-                const obj = GameObject.init(
+                var obj = GameObject.init(
                     pos, 
                     size, 
-                    ResourceManager.getTexture("block_solid"),
-                    zlm.vec3(0.8, 0.8, 0.7)
+                    try ResourceManager.getTexture("block_solid"),
+                    zlm.vec3(0.8, 0.8, 0.7), zlm.vec2(0.0, 0.0)
                 );
                 obj.isSolid = true;
-                try self.bricks.append(obj);
+                try bricks.append(obj);
             } else if (tile > 1) {
                 var color = zlm.vec3(1.0, 1.0, 1.0); // original: white
                 switch (tile) {
@@ -59,21 +59,25 @@ pub fn load(self: Self, filename: []const u8, levelWidth: usize, levelHeight: us
                     3 => color = zlm.vec3(0.0, 0.7, 0.0),
                     4 => color = zlm.vec3(0.8, 0.8, 0.4),
                     5 => color = zlm.vec3(1.0, 0.5, 0.0),
+                    else => {},
                 }
 
-                const pos = zlm.vec2(unit_width * x, unit_height * y);
+                const pos = zlm.vec2(unit_width * @as(f32, @floatFromInt(x)), unit_height * @as(f32, @floatFromInt(y)));
                 const size = zlm.vec2(unit_width, unit_height);
                 const obj = GameObject.init(
                     pos, 
                     size, 
-                    ResourceManager.getTexture("block"),
-                    color
+                    try ResourceManager.getTexture("block"),
+                    color, zlm.vec2(0.0, 0.0)
                 );
-                try self.bricks.append(obj);
+                try bricks.append(obj);
             }
         }
     }
 
+    return Self {
+        .bricks = bricks,
+    };
 }
 
 pub fn draw(self: Self, renderer: SpriteRenderer) void {
@@ -95,9 +99,9 @@ pub fn isCompleted(self: Self) bool {
     return true;
 }
 
-fn readTileData(stream: *std.io.FixedBufferStream([]const u8)) !std.ArrayList(std.ArrayList(usize)) {
+fn readTileData(comptime Buffer: type, stream: *std.io.FixedBufferStream(Buffer)) !std.ArrayList(std.ArrayList(usize)) {
     var tileData = std.ArrayList(std.ArrayList(usize)).init(std.heap.page_allocator);
-    var line_buf: [20]u8 = undefined;
+    var line_buf: [128]u8 = undefined;
 
     while (true) {
         var writeStream = std.io.fixedBufferStream(&line_buf);
@@ -142,7 +146,7 @@ test "reads tile data correctly" {
     ;
     var stream = std.io.fixedBufferStream(data);
 
-    var tileData = try readTileData(&stream);
+    var tileData = try readTileData([]const u8, &stream);
     defer tileData.deinit();
 
     try std.testing.expect(tileData.items.len == 3);
