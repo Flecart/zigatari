@@ -48,23 +48,23 @@ fn start(tileData: std.ArrayList(std.ArrayList(usize)), levelWidth: usize, level
 fn readTileData(stream: *std.io.FixedBufferStream([]const u8)) !std.ArrayList(std.ArrayList(usize)) {
     var tileData = std.ArrayList(std.ArrayList(usize)).init(std.heap.page_allocator);
     var line_buf: [20]u8 = undefined;
-    var writeStream = std.io.fixedBufferStream(&line_buf);
 
-    while (true) |_| {
-        try stream.reader().streamUntilDelimiter(writeStream.writer(), '\n', null) catch |err| {
-            if (err == std.io.StreamError.EndOfFile) {
+    while (true) {
+        var writeStream = std.io.fixedBufferStream(&line_buf);
+        stream.reader().streamUntilDelimiter(writeStream.writer(), '\n', null) catch |err| {
+            if (err == error.EndOfStream) {
                 return tileData;
             } else {
                 return err;
             }
         };
+        // TODO: in theory this should work even if the file is not terminated with a newline
 
-        std.debug.warn("line: {}\n", .{line_buf});
         var tileRow = std.ArrayList(usize).init(std.heap.page_allocator);
         var tile: usize = undefined;
         var i: usize = 0;
         while (i < line_buf.len) : (i += 1) {
-            switch (line[i]) {
+            switch (line_buf[i]) {
                 '0' => tile = 0,
                 '1' => tile = 1,
                 '2' => tile = 2,
@@ -75,10 +75,11 @@ fn readTileData(stream: *std.io.FixedBufferStream([]const u8)) !std.ArrayList(st
                 '7' => tile = 7,
                 '8' => tile = 8,
                 '9' => tile = 9,
-                _ => continue,
+                else => continue,
             }
-            tileRow.append(tile);
+            try tileRow.append(tile);
         }
+        try tileData.append(tileRow);
     }
 }
 
@@ -87,10 +88,13 @@ test "reads tile data correctly" {
         \\ 1 2 3
         \\ 4 5 6
         \\ 7 8 9
+        \\
     ;
     var stream = std.io.fixedBufferStream(data);
 
     var tileData = try readTileData(&stream);
+    defer tileData.deinit();
+
     try std.testing.expect(tileData.items.len == 3);
     try std.testing.expect(tileData.items[0].items.len == 3);
     try std.testing.expect(tileData.items[1].items.len == 3);
