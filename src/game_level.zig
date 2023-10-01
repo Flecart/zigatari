@@ -9,7 +9,7 @@ const Self = @This();
 
 bricks: std.ArrayList(GameObject),
 
-pub fn deinit(self: *Self) Self {
+pub fn deinit(self: *Self) void {
     self.bricks.deinit();
 }
 

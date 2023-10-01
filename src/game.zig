@@ -15,6 +15,13 @@ const GameState = enum {
     game_win
 };
 
+const Direction = enum(usize) {
+    up = 0,
+    right = 1,
+    down = 2,
+    left = 3
+};
+
 // Initial size of the player paddle
 const PLAYER_SIZE: zlm.Vec2 = zlm.vec2(100.0, 20.0);
 // Initial velocity of the player paddle
@@ -90,28 +97,7 @@ pub fn start(self: *Self) !void {
     try self.levels.append(level4);
     self.level = 0;
 
-    // configure game objects
-    const playerPos = zlm.vec2(
-        @as(f32, @floatFromInt(self.width)) / 2.0 - PLAYER_SIZE.x / 2.0,
-        @as(f32, @floatFromInt(self.height)) - PLAYER_SIZE.y
-    );
-    self.player = GameObject.init(playerPos, 
-        PLAYER_SIZE, 
-        try ResourceManager.getTexture("paddle"),
-        GameObject.defaultColor,
-        GameObject.defaultVelocity
-    );
-
-    const ballPos = zlm.vec2(
-        playerPos.x + PLAYER_SIZE.x / 2.0 - 12.5,
-        playerPos.y - 25.0
-    );
-    self.ball = BallObject.init(
-        ballPos,
-        BALL_RADIUS,
-        INITIAL_BALL_VELOCITY,
-        try ResourceManager.getTexture("face")
-    );
+    try self.resetPlayer();
 }
 
 pub fn processInput(self: *Self, dt: f32) void {
@@ -145,6 +131,11 @@ pub fn processInput(self: *Self, dt: f32) void {
 pub fn update(self: *Self, dt: f32) void {
     self.ball.move(dt, self.width);
     self.doCollisions();
+
+    if (self.ball.gameObject.position.y >= @as(f32, @floatFromInt(self.height))) {
+        self.resetLevel() catch unreachable;
+        self.resetPlayer() catch unreachable;
+    }
 }
 
 pub fn render(self: Self) !void {
@@ -167,10 +158,59 @@ pub fn render(self: Self) !void {
 
 pub fn doCollisions(self: *Self) void {
     for (self.levels.items[self.level].bricks.items) |*brick| {
-        if (brick.destroyed or !Self.checkCollisionCirclerect(self.ball, brick.*) or brick.isSolid) {
+        if (brick.destroyed) {
             continue;
         }
-        brick.destroyed = true;
+        const collisionVector = getCollisionVector(self.ball, brick.*);
+        if (collisionVector.length() >= self.ball.radius) {
+            continue;
+        }
+        if (!brick.isSolid) {
+            brick.destroyed = true;
+        }
+
+        std.debug.print("velocity before update {}\n", .{self.ball.gameObject.velocity});
+
+        // now we know there is a collision with a living block
+        const direction = getVectorDirection(collisionVector);
+        switch (direction) {
+            Direction.left, Direction.right => {
+                self.ball.gameObject.velocity.x = -self.ball.gameObject.velocity.x;
+                // relocate
+                const penetration = self.ball.radius - @abs(collisionVector.x);
+                if (direction == Direction.left) {
+                    self.ball.gameObject.position.x += penetration;
+                } else {
+                    self.ball.gameObject.position.x -= penetration;
+                }
+            },
+            Direction.up, Direction.down => {
+                self.ball.gameObject.velocity.y = -self.ball.gameObject.velocity.y;
+                // relocate
+                const penetration = self.ball.radius - @abs(collisionVector.y);
+                if (direction == Direction.up) {
+                    self.ball.gameObject.position.y -= penetration;
+                } else {
+                    self.ball.gameObject.position.y += penetration;
+                }
+            },
+        }
+
+        std.debug.print("Got collision: {}, direction is {}, velocity {}\n", 
+        .{collisionVector, direction, self.ball.gameObject.velocity.y});
+
+    }
+    const playerCollisionVector = getCollisionVector(self.ball, self.player);
+    if (!self.ball.stuck and playerCollisionVector.length() < self.ball.radius) {
+        const centerBoard = self.player.position.x + self.player.size.x / 2.0;
+        const distance = self.ball.gameObject.position.x + self.ball.radius - centerBoard;
+        const percentage = distance / (self.player.size.x / 2.0);
+
+        const strength = 2.0;
+        const oldVelocity = self.ball.gameObject.velocity;
+        self.ball.gameObject.velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
+        self.ball.gameObject.velocity.y = -@abs(self.ball.gameObject.velocity.y);
+        self.ball.gameObject.velocity = self.ball.gameObject.velocity.normalize().scale(oldVelocity.length());
     }
 }
 
@@ -183,7 +223,8 @@ fn checkCollisionRect(one: GameObject, two: GameObject) bool {
     return collisionX and collisionY;
 }
 
-fn checkCollisionCirclerect(ball: BallObject, rect: GameObject) bool {
+/// returns the smallest ditance between the ball border and rect AABB
+fn getCollisionVector(ball: BallObject, rect: GameObject) zlm.Vec2 {
     const ballCenter = ball.gameObject.position.add(zlm.Vec2.all(ball.radius));
 
     const halfExtents = rect.size.scale(1.0 / 2.0);
@@ -194,5 +235,71 @@ fn checkCollisionCirclerect(ball: BallObject, rect: GameObject) bool {
 
     const closest = center.add(clamped);
 
-    return ballCenter.sub(closest).length() <= ball.radius;
+    return ballCenter.sub(closest);
+}
+
+fn checkCollisionCirclerect(ball: BallObject, rect: GameObject) bool {
+    return getCollisionVector(ball, rect).length() < ball.radius;
+}
+
+fn getVectorDirection(vector: zlm.Vec2) Direction {
+    const compass = [_]zlm.Vec2 {
+        zlm.vec2(0.0, 1.0), // up
+        zlm.vec2(1.0, 0.0), // right
+        zlm.vec2(0.0, -1.0), // down
+        zlm.vec2(-1.0, 0.0) // left
+    };
+
+    var max: f32 = 0;
+    var best_match = Direction.up;
+
+    for (0..4) |i| {
+        const dotProduct = compass[i].dot(vector);
+        if (dotProduct > max) {
+            max = dotProduct;
+            best_match = @enumFromInt(i);
+        }
+    }
+
+    return best_match;
+}
+
+fn resetLevel(self: *Self) !void {
+    self.levels.items[self.level].deinit();
+
+    var level: GameLevel = undefined;
+    switch (self.level) {
+        0 => level = try GameLevel.init("levels/one.lvl", self.width, self.height / 2),
+        1 => level = try GameLevel.init("levels/two.lvl", self.width, self.height / 2),
+        2 => level = try GameLevel.init("levels/three.lvl", self.width, self.height / 2),
+        3 => level = try GameLevel.init("levels/four.lvl", self.width, self.height / 2),
+        else => unreachable
+    }
+
+    self.levels.items[self.level] = level;
+}
+
+fn resetPlayer(self: *Self) !void {
+    // configure game objects
+    const playerPos = zlm.vec2(
+        @as(f32, @floatFromInt(self.width)) / 2.0 - PLAYER_SIZE.x / 2.0,
+        @as(f32, @floatFromInt(self.height)) - PLAYER_SIZE.y
+    );
+    self.player = GameObject.init(playerPos, 
+        PLAYER_SIZE, 
+        try ResourceManager.getTexture("paddle"),
+        GameObject.defaultColor,
+        GameObject.defaultVelocity
+    );
+
+    const ballPos = zlm.vec2(
+        playerPos.x + PLAYER_SIZE.x / 2.0 - 12.5,
+        playerPos.y - 25.0
+    );
+    self.ball = BallObject.init(
+        ballPos,
+        BALL_RADIUS,
+        INITIAL_BALL_VELOCITY,
+        try ResourceManager.getTexture("face")
+    );
 }

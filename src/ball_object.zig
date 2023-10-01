@@ -45,11 +45,11 @@ pub fn move(self: *Self, dt: f32, window_width: usize) void {
     position.* = position.add(self.gameObject.velocity.scale(dt));
 
     // check if outside of window bounds
-    if (position.x < self.radius) {
+    if (position.x <= 0) {
         position.x = self.radius;
         self.gameObject.velocity.x *= -1.0;
         self.gameObject.position.x = 0;
-    } else if (position.x + self.radius > 800.0) {
+    } else if (position.x + self.radius > @as(f32, @floatFromInt(window_width))) {
         self.gameObject.velocity.x *= -1.0;
         self.gameObject.position.x = @as(f32, @floatFromInt(window_width)) - self.radius;
     }
