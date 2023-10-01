@@ -167,18 +167,32 @@ pub fn render(self: Self) !void {
 
 pub fn doCollisions(self: *Self) void {
     for (self.levels.items[self.level].bricks.items) |*brick| {
-        if (brick.destroyed or !Self.checkCollision(brick.*, self.ball.gameObject) or brick.isSolid) {
+        if (brick.destroyed or !Self.checkCollisionCirclerect(self.ball, brick.*) or brick.isSolid) {
             continue;
         }
         brick.destroyed = true;
     }
 }
 
-fn checkCollision(one: GameObject, two: GameObject) bool {
+fn checkCollisionRect(one: GameObject, two: GameObject) bool {
     // collision x-axis?
     const collisionX = one.position.x + one.size.x >= two.position.x and two.position.x + two.size.x >= one.position.x;
     // collision y-axis?
     const collisionY = one.position.y + one.size.y >= two.position.y and two.position.y + two.size.y >= one.position.y;
     // collision only if on both axes
     return collisionX and collisionY;
+}
+
+fn checkCollisionCirclerect(ball: BallObject, rect: GameObject) bool {
+    const ballCenter = ball.gameObject.position.add(zlm.Vec2.all(ball.radius));
+
+    const halfExtents = rect.size.scale(1.0 / 2.0);
+    const center = rect.position.add(halfExtents);
+
+    const difference = ballCenter.sub(center);
+    const clamped = difference.componentClamp(halfExtents.neg(), halfExtents);
+
+    const closest = center.add(clamped);
+
+    return ballCenter.sub(closest).length() <= ball.radius;
 }
