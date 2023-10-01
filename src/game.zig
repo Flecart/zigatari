@@ -144,6 +144,7 @@ pub fn processInput(self: *Self, dt: f32) void {
 
 pub fn update(self: *Self, dt: f32) void {
     self.ball.move(dt, self.width);
+    self.doCollisions();
 }
 
 pub fn render(self: Self) !void {
@@ -162,4 +163,22 @@ pub fn render(self: Self) !void {
         self.player.draw(self.renderer);
         self.ball.draw(self.renderer);
     }
+}
+
+pub fn doCollisions(self: *Self) void {
+    for (self.levels.items[self.level].bricks.items) |*brick| {
+        if (brick.destroyed or !Self.checkCollision(brick.*, self.ball.gameObject) or brick.isSolid) {
+            continue;
+        }
+        brick.destroyed = true;
+    }
+}
+
+fn checkCollision(one: GameObject, two: GameObject) bool {
+    // collision x-axis?
+    const collisionX = one.position.x + one.size.x >= two.position.x and two.position.x + two.size.x >= one.position.x;
+    // collision y-axis?
+    const collisionY = one.position.y + one.size.y >= two.position.y and two.position.y + two.size.y >= one.position.y;
+    // collision only if on both axes
+    return collisionX and collisionY;
 }
