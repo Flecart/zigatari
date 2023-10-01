@@ -1,12 +1,13 @@
 const std = @import("std");
 const zgl = @import("zgl");
 const zlm = @import("zlm");
-const glfw = @import("maach-glfw");
+const glfw = @import("mach-glfw");
 
 const ResourceManager = @import("./resource_manager.zig");
 const SpriteRenderer = @import("./sprite_renderer.zig");
 const GameLevel = @import("./game_level.zig");
 const GameObject = @import("./game_object.zig");
+const BallObject = @import("./ball_object.zig");
 
 const GameState = enum { 
     game_active, 
@@ -19,6 +20,12 @@ const PLAYER_SIZE: zlm.Vec2 = zlm.vec2(100.0, 20.0);
 // Initial velocity of the player paddle
 const PLAYER_VELOCITY: f32 = 500.0;
 
+
+// Initial velocity of the Ball
+const INITIAL_BALL_VELOCITY: zlm.Vec2 = zlm.vec2(100.0, -350.0);
+// Radius of the ball object
+const BALL_RADIUS: f32 = 12.5;
+
 const Self = @This();
 
 state: GameState,
@@ -29,6 +36,7 @@ renderer: SpriteRenderer,
 levels: std.ArrayList(GameLevel),
 level: u32,
 player: GameObject,
+ball: BallObject,
 
 pub fn init(width: u32, height: u32) Self {
     return Self {
@@ -40,6 +48,7 @@ pub fn init(width: u32, height: u32) Self {
         .levels = std.ArrayList(GameLevel).init(std.heap.page_allocator),
         .level = 0,
         .player = undefined,
+        .ball = undefined,
     };
 }
 
@@ -92,30 +101,49 @@ pub fn start(self: *Self) !void {
         GameObject.defaultColor,
         GameObject.defaultVelocity
     );
+
+    const ballPos = zlm.vec2(
+        playerPos.x + PLAYER_SIZE.x / 2.0 - 12.5,
+        playerPos.y - 25.0
+    );
+    self.ball = BallObject.init(
+        ballPos,
+        BALL_RADIUS,
+        INITIAL_BALL_VELOCITY,
+        try ResourceManager.getTexture("face")
+    );
 }
 
 pub fn processInput(self: *Self, dt: f32) void {
     if (self.state == GameState.game_active) {
-        _ = dt;
-        // const velocity = PLAYER_VELOCITY * dt;
-        // if (self.keys[@intFromEnum(glfw.Keys.w)]) {
-        //     self.player.position.y += velocity;
-        // }
-        // if (self.keys[GLFW_KEY_S]) {
-        //     self.player.position.y -= velocity;
-        // }
-        // if (self.keys[GLFW_KEY_A]) {
-        //     self.player.position.x -= velocity;
-        // }
-        // if (self.keys[GLFW_KEY_D]) {
-        //     self.player.position.x += velocity;
-        // }
+        const velocity = PLAYER_VELOCITY * dt;
+
+        // move playerboard
+        if (self.keys[@intFromEnum(glfw.Key.a)]) {
+            if (self.player.position.x >= 0.0) {
+                self.player.position.x -= velocity;
+                if (self.ball.stuck) {
+                    self.ball.gameObject.position.x -= velocity;
+                }
+            }
+        }
+        if (self.keys[@intFromEnum(glfw.Key.d)]) {
+            if (self.player.position.x <= @as(f32, @floatFromInt(self.width)) - self.player.size.x) {
+                self.player.position.x += velocity;
+                if (self.ball.stuck) {
+                    self.ball.gameObject.position.x += velocity;
+                }
+            }
+        }
+
+        if (self.keys[@intFromEnum(glfw.Key.space)]) {
+            self.ball.stuck = false;
+        }
     }
 }
 
-pub fn update(self: Self, dt: f32) void {
-    _ = self;
-    _ = dt;
+pub fn update(self: *Self, dt: f32) void {
+    self.ball.move(dt, self.width);
 }
 
 pub fn render(self: Self) !void {
@@ -132,5 +160,6 @@ pub fn render(self: Self) !void {
         // draw level
         self.levels.items[self.level].draw(self.renderer);
         self.player.draw(self.renderer);
+        self.ball.draw(self.renderer);
     }
 }

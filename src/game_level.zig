@@ -79,14 +79,7 @@ pub fn init(filename: []const u8, levelWidth: usize, levelHeight: usize) !Self {
     };
 }
 
-var trya: i32 = 0;
-
 pub fn draw(self: Self, renderer: SpriteRenderer) void {
-    if (trya == 0) {
-        std.debug.print("drawing bricks\n", .{});
-        std.debug.print("bricks.items.len = {}\n", .{self.bricks.items.len});
-        trya += 1;
-    }
     for (self.bricks.items) |brick| {
         if (!brick.destroyed) {
             brick.draw(renderer);
