@@ -35,9 +35,8 @@ pub fn init(filename: []const u8, levelWidth: usize, levelHeight: usize) !Self {
 
     // initialize level tiles based on tileData
     var y: usize = 0;
-    var x: usize = 0;
-
     while (y < height) : (y += 1) {
+        var x: usize = 0;
         while (x < width) : (x += 1) {
             const tile = tileData.items[y].items[x];
             // check block type from level data (2D level array)
@@ -80,7 +79,14 @@ pub fn init(filename: []const u8, levelWidth: usize, levelHeight: usize) !Self {
     };
 }
 
+var trya: i32 = 0;
+
 pub fn draw(self: Self, renderer: SpriteRenderer) void {
+    if (trya == 0) {
+        std.debug.print("drawing bricks\n", .{});
+        std.debug.print("bricks.items.len = {}\n", .{self.bricks.items.len});
+        trya += 1;
+    }
     for (self.bricks.items) |brick| {
         if (!brick.destroyed) {
             brick.draw(renderer);

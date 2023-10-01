@@ -13,11 +13,16 @@ isSolid: bool,
 destroyed: bool,
 sprite: Texture,
 
+pub const defaultPosition: zlm.Vec2 = zlm.vec2(0.0, 0.0);
+pub const defaultSize: zlm.Vec2 = zlm.vec2(10.0, 10.0);
+pub const defaultVelocity: zlm.Vec2 = zlm.vec2(0.0, 0.0);
+pub const defaultColor: zlm.Vec3 = zlm.vec3(1.0, 1.0, 1.0);
+
 pub const default = Self {
-    .position = zlm.vec2{0.0, 0.0},
-    .size = zlm.vec2{10.0, 10.0},
-    .velocity = zlm.vec2{0.0, 0.0},
-    .color = zlm.vec3{1.0, 1.0, 1.0},
+    .position = defaultPosition,
+    .size = defaultSize,
+    .velocity = defaultVelocity,
+    .color = defaultColor,
     .rotation = 0.0,
     .isSolid = false,
     .destroyed = false,
@@ -38,5 +43,5 @@ pub fn init(position: zlm.Vec2, size: zlm.Vec2, sprite: Texture, color: zlm.Vec3
 }
 
 pub fn draw(self: Self, renderer: Renderer) void {
-    renderer.drawSprite(self.sprite, self.sprite, self.position, self.size, self.rotation, self.color);
+    renderer.drawSprite(self.sprite, self.position, self.size, self.rotation, self.color);
 }

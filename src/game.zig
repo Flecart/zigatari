@@ -82,11 +82,16 @@ pub fn start(self: *Self) !void {
     self.level = 0;
 
     // configure game objects
-    // const playerPos = zlm.vec2(
-    //     @as(f32, @floatFromInt(self.width)) / 2.0 - PLAYER_SIZE.x / 2.0,
-    //     @as(f32, @floatFromInt(self.height)) - PLAYER_SIZE.y
-    // );
-    // self.player = GameObject.init(playerPos, PLAYER_SIZE, try ResourceManager.getTexture("paddle"));
+    const playerPos = zlm.vec2(
+        @as(f32, @floatFromInt(self.width)) / 2.0 - PLAYER_SIZE.x / 2.0,
+        @as(f32, @floatFromInt(self.height)) - PLAYER_SIZE.y
+    );
+    self.player = GameObject.init(playerPos, 
+        PLAYER_SIZE, 
+        try ResourceManager.getTexture("paddle"),
+        GameObject.defaultColor,
+        GameObject.defaultVelocity
+    );
 }
 
 pub fn processInput(self: *Self, dt: f32) void {
@@ -115,6 +120,7 @@ pub fn update(self: Self, dt: f32) void {
 
 pub fn render(self: Self) !void {
     if (self.state == GameState.game_active) {
+        // draw background
         self.renderer.drawSprite(
             try ResourceManager.getTexture("background"),
             zlm.vec2(0.0, 0.0),
@@ -122,5 +128,9 @@ pub fn render(self: Self) !void {
             0.0,
             zlm.vec3(1.0, 1.0, 1.0)
         );
+
+        // draw level
+        self.levels.items[self.level].draw(self.renderer);
+        self.player.draw(self.renderer);
     }
 }
