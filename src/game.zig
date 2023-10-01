@@ -169,8 +169,6 @@ pub fn doCollisions(self: *Self) void {
             brick.destroyed = true;
         }
 
-        std.debug.print("velocity before update {}\n", .{self.ball.gameObject.velocity});
-
         // now we know there is a collision with a living block
         const direction = getVectorDirection(collisionVector);
         switch (direction) {
@@ -195,10 +193,6 @@ pub fn doCollisions(self: *Self) void {
                 }
             },
         }
-
-        std.debug.print("Got collision: {}, direction is {}, velocity {}\n", 
-        .{collisionVector, direction, self.ball.gameObject.velocity.y});
-
     }
     const playerCollisionVector = getCollisionVector(self.ball, self.player);
     if (!self.ball.stuck and playerCollisionVector.length() < self.ball.radius) {
@@ -235,7 +229,7 @@ fn getCollisionVector(ball: BallObject, rect: GameObject) zlm.Vec2 {
 
     const closest = center.add(clamped);
 
-    return ballCenter.sub(closest);
+    return closest.sub(ballCenter);
 }
 
 fn checkCollisionCirclerect(ball: BallObject, rect: GameObject) bool {
