@@ -120,7 +120,7 @@ pub fn render(self: Self) !void {
             zlm.vec2(0.0, 0.0),
             zlm.vec2(@floatFromInt(self.width), @floatFromInt(self.height)),
             0.0,
-            zlm.vec3(0.0, 0.0, 0.0)
+            zlm.vec3(1.0, 1.0, 1.0)
         );
     }
 }
