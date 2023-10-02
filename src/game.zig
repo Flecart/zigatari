@@ -8,6 +8,7 @@ const SpriteRenderer = @import("./sprite_renderer.zig");
 const GameLevel = @import("./game_level.zig");
 const GameObject = @import("./game_object.zig");
 const BallObject = @import("./ball_object.zig");
+const ParticleGenerator = @import("./particle_generator.zig");
 
 const GameState = enum { 
     game_active, 
@@ -44,6 +45,7 @@ levels: std.ArrayList(GameLevel),
 level: u32,
 player: GameObject,
 ball: BallObject,
+particles: ParticleGenerator,
 
 pub fn init(width: u32, height: u32) Self {
     return Self {
@@ -56,6 +58,7 @@ pub fn init(width: u32, height: u32) Self {
         .level = 0,
         .player = undefined,
         .ball = undefined,
+        .particles = undefined,
     };
 }
 
@@ -63,7 +66,7 @@ pub fn init(width: u32, height: u32) Self {
 pub fn start(self: *Self) !void {
     // load shaders
     const shader = try ResourceManager.loadShader("shaders/sprite.vs", "shaders/sprite.fs", "", "sprite");
-
+    _ = try ResourceManager.loadShader("shaders/particle.vs", "shaders/particle.fs", "", "particle");
     // configure shaders
     const projection = zlm.Mat4.createOrthogonal(
         0, 
@@ -85,7 +88,7 @@ pub fn start(self: *Self) !void {
     _ = try ResourceManager.loadTexture("textures/block.png", false, "block");
     _ = try ResourceManager.loadTexture("textures/block_solid.png", false, "block_solid");
     _ = try ResourceManager.loadTexture("textures/paddle.png", true, "paddle");
-
+    _ = try ResourceManager.loadTexture("textures/particle.png", true, "particle");
     // load levels
     var level1 = try GameLevel.init("levels/one.lvl", self.width, self.height / 2);
     var level2 = try GameLevel.init("levels/two.lvl", self.width, self.height / 2);
@@ -98,6 +101,13 @@ pub fn start(self: *Self) !void {
     self.level = 0;
 
     try self.resetPlayer();
+
+    // configure particle system
+    self.particles = try ParticleGenerator.init(
+        try ResourceManager.getShader("particle"),
+        try ResourceManager.getTexture("particle"),
+        500
+    );
 }
 
 pub fn processInput(self: *Self, dt: f32) void {
@@ -136,6 +146,8 @@ pub fn update(self: *Self, dt: f32) void {
         self.resetLevel() catch unreachable;
         self.resetPlayer() catch unreachable;
     }
+
+    self.particles.update(dt, self.ball.gameObject, 2, zlm.Vec2.all(self.ball.radius / 2.0));
 }
 
 pub fn render(self: Self) !void {
@@ -152,6 +164,7 @@ pub fn render(self: Self) !void {
         // draw level
         self.levels.items[self.level].draw(self.renderer);
         self.player.draw(self.renderer);
+        self.particles.draw();
         self.ball.draw(self.renderer);
     }
 }

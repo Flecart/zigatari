@@ -88,11 +88,15 @@ pub fn setFloat(self: Self, name: [:0]const u8, value: f32) void {
 }
 
 pub fn setVec2(self: Self, name: [:0]const u8, value: math.Vec2) void {
-    gl.uniform2fv(gl.getUniformLocation(self.id, name), &.{value.fields});
+    gl.uniform2f(gl.getUniformLocation(self.id, name), value.x, value.y);
 }
 
 pub fn setVec3(self: Self, name: [:0]const u8, value: math.Vec3) void {
     gl.uniform3f(gl.getUniformLocation(self.id, name), value.x, value.y, value.z);
+}
+
+pub fn setVec4(self: Self, name: [:0]const u8, value: math.Vec4) void {
+    gl.uniform4f(gl.getUniformLocation(self.id, name), value.x, value.y, value.z, value.w);
 }
 
 pub fn setMat2(self: Self, name: [:0]const u8, value: math.Mat2) void {
