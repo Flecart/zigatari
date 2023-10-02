@@ -66,7 +66,7 @@ pub fn init(width: u32, height: u32) Self {
 pub fn start(self: *Self) !void {
     // load shaders
     const shader = try ResourceManager.loadShader("shaders/sprite.vs", "shaders/sprite.fs", "", "sprite");
-    _ = try ResourceManager.loadShader("shaders/particle.vs", "shaders/particle.fs", "", "particle");
+    const particleShader = try ResourceManager.loadShader("shaders/particle.vs", "shaders/particle.fs", "", "particle");
     // configure shaders
     const projection = zlm.Mat4.createOrthogonal(
         0, 
@@ -78,6 +78,10 @@ pub fn start(self: *Self) !void {
     shader.use();
     shader.setInt("image", 0);
     shader.setMat4("projection", projection);
+
+    particleShader.use();
+    particleShader.setInt("sprite", 0);
+    particleShader.setMat4("projection", projection);
 
     // set-renderer-specific controls
     self.renderer = SpriteRenderer.init(shader);
@@ -147,7 +151,7 @@ pub fn update(self: *Self, dt: f32) void {
         self.resetPlayer() catch unreachable;
     }
 
-    self.particles.update(dt, self.ball.gameObject, 2, zlm.Vec2.all(self.ball.radius / 2.0));
+    self.particles.update(dt, self.ball.gameObject, 2, zlm.Vec2.all(self.ball.radius));
 }
 
 pub fn render(self: Self) !void {
@@ -300,8 +304,8 @@ fn resetPlayer(self: *Self) !void {
     );
 
     const ballPos = zlm.vec2(
-        playerPos.x + PLAYER_SIZE.x / 2.0 - 12.5,
-        playerPos.y - 25.0
+        playerPos.x + PLAYER_SIZE.x / 2.0 - BALL_RADIUS,
+        playerPos.y - BALL_RADIUS * 2.0
     );
     self.ball = BallObject.init(
         ballPos,
